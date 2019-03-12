@@ -1,68 +1,32 @@
-import React, {Component} from 'react';
-import {StyleSheet, Text, View, Button} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {createSwitchNavigator, 
-  createDrawerNavigator,
-  createBottomTabNavigator, 
-  createStackNavigator, 
-  createAppContainer,} from 'react-navigation';
+import React, { Component } from 'react';
+import { StyleSheet, Text, View, Button } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icons from 'react-native-vector-icons/Ionicons';
+import {
+  createSwitchNavigator,
+  createBottomTabNavigator,
+  createStackNavigator,
+  createAppContainer,
+} from 'react-navigation';
 
 
 //Screens
 import WelcomeScreen from "./screens/WelcomeScreen";
 import Weather from "./screens/WeatherScreen";
+import Radar from "./screens/RadarScreen";
+import Surf from "./screens/SurfScreen"
+import Search from "./screens/SearchScreen"
 
-//API
-import API_KEY from "./utils/WeatherAPIKey";
 
 
 
-class App extends React.Component {
-  constructor(props){
-    super(props);
 
-    this.state= {
-      latitutde: 0,
-      longitude: 0,
-      forecast: [],
-      error:''
-    };
-  }
 
-//Gets the location of the user
-  getLocation(){
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        this.setState(
-          (prevState) => ({
-            latitutde: position.coords.latitude,
-            longitude: position.coords.longitude
-          }), () => {this.getWeather();}
-        );
-      },
-          (error) => this.setState({forecast: error.message}),
-          { enableHighAccuracy: true, timeout: 2000, maximumAge: 1000},
+class App extends Component {
+  render() {
+    return (
+      <AppContainer />
     );
-  }
-
-  //Gets the local Weather
-  getWeather(){
-    //Weather API
-    let url = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + 
-    this.state.latitude + '&lon=' + this.state.longitude + 
-    API_KEY;
-
-    fetch(url)
-    .then(response => response.json())
-    .then(data => {
-        this.setState((prevState,props) => ({
-          forecast: data
-        }));
-    })
-  }
-
-  render(){
-    return <AppContainer/>;
   }
 }
 export default App;
@@ -71,27 +35,18 @@ export default App;
 
 class DashBoardScreen extends React.Component {
   render() {
-    return(
+    return (
       <View style={styles.container}>
-        <Text>Dashboard</Text>
+        <Text></Text>
       </View>
     );
   }
 }
 
-class Profile extends React.Component {
-  render() {
-    return(
-      <View style={styles.container}>
-        <Text>Profile</Text>
-      </View>
-    );
-  }
-}
 
 class Settings extends React.Component {
   render() {
-    return(
+    return (
       <View style={styles.container}>
         <Text>Settings</Text>
       </View>
@@ -102,49 +57,75 @@ class Settings extends React.Component {
 /*** Navigators ***/
 
 const DashboardTabNavigator = createBottomTabNavigator({
-  Weather,
-  Profile,
-  Settings,
-},{
-  navigationOptions: ({navigation}) => {
-    const {routeName} = navigation.state.routes
-    [navigation.state.index];
-    return {
-      headerTitle: routeName
-    };
-  }
-});
-
-const DashboardStackNavigator = createStackNavigator({
-  DashboardTabNavigator: DashboardTabNavigator
-},{
-  defaultNavigationOptions:({navigation})=>{
-    return{
-      headerLeft:(
-        <Icon style={{ paddingLeft: 10, color: 'white'}}
-          onPress={() => navigation.openDrawer()}
-          name="md-menu" size={30} />
-      ),
-      headerRight:(
-        <Icon style={{ paddingRight: 10, color: 'white'}}
-        name="md-settings" size={30} />
-      ),
-      headerStyle :{
-        backgroundColor: '#1C9CF6'
-      }
+  WEATHER: {
+    screen: Weather,
+    navigationOptions: {
+      tabBarLabel: 'WEATHER',
+      tabBarIcon: ({ tintColor }) => (
+        <Icon name='weather-cloudy' color={tintColor}
+          size={24} />
+      )
+    }
+  },
+  RADAR: {
+    screen: Radar,
+    navigationOptions: {
+      tabBarLabel: 'RADAR',
+      tabBarIcon: ({ tintColor }) => (
+        <Icon name='radar' color={tintColor}
+          size={24} />
+      )
+    }
+  },
+  SURF: {
+    screen: Surf,
+    navigationOptions: {
+      tabBarLabel: 'SURF',
+      tabBarIcon: ({ tintColor }) => (
+        <Icon name='waves' color={tintColor}
+          size={24} />
+      )
     }
   }
-});
+}, {
+    navigationOptions: ({ navigation }) => {
+      const { routeName } = navigation.state.routes
+      [navigation.state.index];
+      return {
+        headerTitle:
+          <Text style={{ color: 'white', fontWeight: '500', fontFamily: 'Helvetica-Bold', fontSize: 18 }}>{routeName}</Text>
+      };
+    }
+  });
 
-const AppDrawerNavigator = createDrawerNavigator({
-  'Weather': {screen: DashboardStackNavigator },
-  'Radar' : {screen: DashboardStackNavigator },
-  'Surf Report': {screen: DashboardStackNavigator},
-});
+const DashboardStackNavigator = createStackNavigator({
+  DashboardTabNavigator: DashboardTabNavigator,
+  Search: Search,
+  Settings: Settings
+}, {
+    defaultNavigationOptions: ({ navigation }) => {
+      return {
+        headerLeft: (
+          <Icons style={{ paddingLeft: 10, color: 'white' }}
+            onPress={() => navigation.navigate('Search')}
+            name="md-search" size={30} />
+        ),
+        headerRight: (
+          <Icons style={{ paddingRight: 10, color: 'white' }}
+            onPress={() => navigation.navigate('Settings')}
+            name="md-settings" size={30} />
+        ),
+        headerStyle: {
+          backgroundColor: '#1C9CF6',
+        }
+      }
+    }
+  });
+
 
 const AppSwitchNavigator = createSwitchNavigator({
-  Welcome:{screen: WelcomeScreen},
-  Dashboard:{screen: AppDrawerNavigator},
+  Welcome: { screen: WelcomeScreen },
+  Dashboard: { screen: DashboardStackNavigator },
 });
 
 const AppContainer = createAppContainer(AppSwitchNavigator);
@@ -157,8 +138,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  textStyling :{
-
-  },
+  }
 });
